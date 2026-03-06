@@ -30,6 +30,8 @@ Responsável por:
 
 O processamento é feito utilizando **BackgroundService**, simulando um worker que executa tarefas em segundo plano.
 
+![Arquitetura](docs/architecture-diagram.png)
+
 ---
 
 ## Tecnologias Utilizadas
