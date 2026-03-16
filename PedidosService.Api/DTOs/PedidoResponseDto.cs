@@ -11,5 +11,6 @@ namespace PedidosService.Api.DTOs
         public string Numero { get; set; } = string.Empty;  
         public decimal ValorTotal { get; set; }
         public string Status { get; set; } = string.Empty;
+        public DateTime CriadoEm { get; set; }
     }
 }

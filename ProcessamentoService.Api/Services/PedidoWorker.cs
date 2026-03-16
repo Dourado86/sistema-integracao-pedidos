@@ -31,7 +31,7 @@ public class PedidoWorker : BackgroundService
                     foreach (var pedido in pedidos)
                     {
                         await client.PutAsync($"api/Pedidos/{pedido.Id}/processar", null, stoppingToken);
-                        _logger.LogInformation("Pedido {Id} processado automaticamente.", pedido.Id);
+                        _logger.LogInformation("***Pedido {Id} processado automaticamente.***", pedido.Id);
                     }
                 }
                 else

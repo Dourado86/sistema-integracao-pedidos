@@ -1,71 +1,102 @@
 using Microsoft.AspNetCore.Mvc;
 using PedidosService.Api.DTOs;
-using IntegracaoPedidos.Core.Interfaces;
-using IntegracaoPedidos.Core.Enums;
-using IntegracaoPedidos.Core.Models;
+using PedidosService.Api.Services;
 
+namespace PedidosService.Api.Controllers;
 
-
-
-namespace PedidosService.Api.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class PedidosController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class PedidosController : ControllerBase
+    private readonly IPedidoService _pedidoService;
+    private readonly ILogger<PedidosController> _logger;
+
+    public PedidosController(IPedidoService pedidoService, ILogger<PedidosController> logger)
     {
-        private readonly IPedidoRepository _pedidoRepository;
-        public PedidosController(IPedidoRepository pedidoRepository)
+        _pedidoService = pedidoService;
+        _logger = logger;
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> Criar(CreatePedidoDto dto)
+
+    {
+        _logger.LogInformation("Recebido pedido número {numero}", dto.Numero);
+
+        var pedido = await _pedidoService.CriarPedido(dto);
+
+        _logger.LogInformation("Pedido {Id} criado com sucesso", pedido.Id);
+
+        return CreatedAtAction(nameof(ObterPorId), new { id = pedido.Id }, pedido);
+    }
+
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> ObterPorId(int id)
+    {
+        _logger.LogInformation("Buscando pedido ID {Id}", id);
+
+        var pedido = await _pedidoService.ObterPedido(id);
+
+        if (pedido == null)
         {
-            _pedidoRepository = pedidoRepository;
+            _logger.LogWarning("Pedido ID {Id} não encontrado", id);
+            return NotFound();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Criar(CreatePedidoDto dto)
-        {
-            var pedido = new Pedido
-            {
-                Numero = dto.Numero,
-                ValorTotal = dto.ValorTotal,
-            };
 
-            await _pedidoRepository.AddPedidoAsync(pedido);
+        return Ok(pedido);
+    }
+    
 
-            return CreatedAtAction(nameof(ObterPorId), new { id = pedido.Id }, pedido);
-        }
+    [HttpGet]
+    public async Task<IActionResult> Listar()
+    {
+        _logger.LogInformation("Listando todos os pedidos");
+        //throw new Exception("Erro teste"); // testando o tratamento global de exceções
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> ObterPorId(int id)
-        {
-            var pedido = await _pedidoRepository.GetPedidoByIdAsync(id);
-            
-            if (pedido == null)
-                return NotFound();
-
-            return Ok(pedido);
-        }
-
-        [HttpGet("pendentes")]
-        public async Task<IActionResult> GetPendentes()
-        {
-        var pedidos = await _pedidoRepository.ObterPendentesAsync();
+        var pedidos = await _pedidoService.ListarPedidos();
         return Ok(pedidos);
-        }
+    }
 
-        [HttpPut("{id}/processar")]
-        public async Task<IActionResult> Processar(int id)
+
+    [HttpGet("pendentes")]
+    public async Task<IActionResult> Pendentes()
+    {
+        _logger.LogInformation("Listando pedidos pendentes");
+
+        var pedidos = await _pedidoService.ObterPendentes();
+        return Ok(pedidos);
+    }
+
+
+    [HttpPut("{id}/processar")]
+    public async Task<IActionResult> Processar(int id)
+    {
+        _logger.LogInformation("Processando pedido ID {Id}", id);
+
+        try
         {
-            var pedido = await _pedidoRepository.GetPedidoByIdAsync(id);
+            var pedido = await _pedidoService.ProcessarPedido(id);
+
             if (pedido == null)
+            {
+
+                _logger.LogWarning("Pedido ID {Id} não encontrado para processamento", id);
                 return NotFound("Pedido não encontrado.");
 
-            if (pedido.Status == StatusPedido.Processado)
-                return BadRequest("Pedido já foi processado.");    
+            }
 
-            pedido.Status = StatusPedido.Processado;
-            await _pedidoRepository.UpdatePedidoAsync(pedido);
-
+            
+            _logger.LogInformation("Pedido ID {Id} processado com sucesso", id);
             return Ok(pedido);
         }
 
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("Erro ao processar pedido ID {Id}: {Message}", id, ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 }

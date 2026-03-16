@@ -1,0 +1,33 @@
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: pedidos-sql
+    restart: always
+    environment:
+      SA_PASSWORD: "Your_password123"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+
+  pedidos-api:
+    build:
+      context: .
+      dockerfile: PedidosService.Api/Dockerfile
+    container_name: pedidos-api
+    restart: always
+    ports:
+      - "5001:8080"
+    depends_on:
+      - sqlserver
+
+  processamento-api:
+    build:
+      context: .
+      dockerfile: ProcessamentoService.Api/Dockerfile
+    container_name: processamento-api
+    restart: always
+    ports:
+      - "5002:8081"
+    depends_on:
+      - pedidos-api
