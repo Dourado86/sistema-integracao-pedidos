@@ -1,5 +1,4 @@
 services:
-
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: pedidos-sql
@@ -9,6 +8,15 @@ services:
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
+
+  # --- NOVO SERVIÇO: RABBITMQ ---
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: pedidos-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # Porta de comunicação das APIs (AMQP)
+      - "15672:15672" # Porta do Painel de Administração (Navegador)
 
   pedidos-api:
     build:
@@ -20,6 +28,7 @@ services:
       - "5001:8080"
     depends_on:
       - sqlserver
+      - rabbitmq # A API agora depende do RabbitMQ também
 
   processamento-api:
     build:
@@ -31,3 +40,4 @@ services:
       - "5002:8081"
     depends_on:
       - pedidos-api
+      - rabbitmq # O Worker agora depende do RabbitMQ também

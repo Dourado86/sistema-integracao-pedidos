@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PedidosService.Api.DTOs;
 using PedidosService.Api.Services;
+using PedidosService.Api.Mensageria;
 
 namespace PedidosService.Api.Controllers;
 
@@ -10,11 +11,15 @@ public class PedidosController : ControllerBase
 {
     private readonly IPedidoService _pedidoService;
     private readonly ILogger<PedidosController> _logger;
+    private readonly IRabbitMqProducer _mensageria; // Nova dependência
 
-    public PedidosController(IPedidoService pedidoService, ILogger<PedidosController> logger)
+    public PedidosController(IPedidoService pedidoService, ILogger<PedidosController> logger, IRabbitMqProducer mensageria)// Injetando via construtor
+
+        
     {
         _pedidoService = pedidoService;
         _logger = logger;
+        _mensageria = mensageria;
     }
 
 
@@ -24,9 +29,14 @@ public class PedidosController : ControllerBase
     {
         _logger.LogInformation("Recebido pedido número {numero}", dto.Numero);
 
+        // 1. O Serviço faz a regra de negócio e salva no banco de dados (SQL)
         var pedido = await _pedidoService.CriarPedido(dto);
 
-        _logger.LogInformation("Pedido {Id} criado com sucesso", pedido.Id);
+
+        // 2. apenas o ID do pedido criado. O nome da fila será "pedidos_criados"
+       await _mensageria.PublicarMensagem(new { PedidoId = pedido.Id },"pedidos-criados"); // Publica a mensagem na fila "pedidos-criados"
+
+        _logger.LogInformation("Pedido, {Id} criado com sucesso e enviado para a a fila", pedido.Id);
 
         return CreatedAtAction(nameof(ObterPorId), new { id = pedido.Id }, pedido);
     }

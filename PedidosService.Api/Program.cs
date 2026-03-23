@@ -5,6 +5,7 @@ using IntegracaoPedidos.Core.Interfaces;
 using System.Text.Json.Serialization;
 using PedidosService.Api.Services;
 using PedidosService.Api.Middleware;
+using PedidosService.Api.Mensageria;
 
 
 
@@ -14,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
+// NOVO: Registrando o publicador de mensagens
+builder.Services.AddScoped<IRabbitMqProducer, RabbitMqProducer>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
