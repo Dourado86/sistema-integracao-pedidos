@@ -60,16 +60,24 @@ public class PedidosController : ControllerBase
     }
     
 
-    [HttpGet]
-    public async Task<IActionResult> Listar()
+     [HttpGet]
+     public async Task<IActionResult> Listar(
+        // [FromQuery] diz para o C# procurar esses valores na URL (ex: ?pagina=2&quantidade=5)
+        // "= 1" e "= 10" são os valores padrão. Se o usuário não digitar nada na URL, 
+        // a API não quebra, ela simplesmente devolve a primeira página com 10 itens.
+        [FromQuery] int pagina = 1, 
+        [FromQuery] int quantidade = 10)
     {
-        _logger.LogInformation("Listando todos os pedidos");
-        //throw new Exception("Erro teste"); // testando o tratamento global de exceções
+        // Boa prática: logar o que está sendo buscado
+        _logger.LogInformation("Listando pedidos: Página {pagina}, Quantidade {quantidade}", pagina, quantidade);
 
-        var pedidos = await _pedidoService.ListarPedidos();
-        return Ok(pedidos);
+        // Chamamos o serviço passando exatamente os números que vieram da URL
+        var resultadoPaginado = await _pedidoService.ListarPedidosAsync(pagina, quantidade);
+        
+        // Retornamos a nossa "caixinha" cheia de metadados com status 200 OK
+        return Ok(resultadoPaginado);
     }
-
+   
 
     [HttpGet("pendentes")]
     public async Task<IActionResult> Pendentes()

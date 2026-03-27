@@ -54,6 +54,12 @@ Responsável por:
 
 # Recursos Implementados
 
+## Performance e Otimização de Banco de Dados
+Para garantir a escalabilidade do sistema e evitar gargalos de memória (Memory Leaks) ao lidar com milhares de pedidos, foram implementadas as seguintes técnicas:
+* **Paginação no Banco de Dados:** Uso de `IQueryable` com `.Skip()` e `.Take()` no Entity Framework Core para trafegar apenas os dados necessários por página.
+* **Consultas de Leitura Otimizadas:** Aplicação de `.AsNoTracking()` nas listagens para liberar o Change Tracker, economizando processamento e memória RAM do servidor.
+* **Respostas Padronizadas (Wrappers):** Criação de uma classe genérica `PagedResult<T>` para devolver os dados envelopados com metadados (total de itens, páginas, etc.), facilitando a integração com sistemas Frontend.
+
 ## Mensageria e Processamento Assíncrono (RabbitMQ)
 O sistema abandonou o acoplamento síncrono (HTTP direto) e utiliza o **RabbitMQ** para garantir uma arquitetura resiliente:
 * **Desacoplamento:** A API principal apenas publica o evento e libera o usuário instantaneamente, sem travar aguardando o processamento.
@@ -82,6 +88,17 @@ O ambiente inclui a orquestração simultânea de:
 # Estrutura do Projeto
 
 IntegracaoPedidos
+├── docs
+├── IntegracaoPedidos.Core
+│   ├── Enums
+│   ├── Interfaces
+│   ├── Models
+│   ├── Pagination
+│
+├── IntegracaoPedidos.Infrastructure
+│   ├── Data
+│   ├── Migrations
+│   ├── Repositories
 │
 ├── PedidosService.Api
 │   ├── Controllers
@@ -95,21 +112,13 @@ IntegracaoPedidos
 │   ├── Services
 │   ├── Workers
 │
-├── IntegracaoPedidos.Core
-│   ├── Enums
-│   ├── Interfaces
-│   ├── Models
-│
-├── IntegracaoPedidos.Infrastructure
-│   ├── Data
-│   ├── Migrations
-│   ├── Repositories
-│
 └── docker-compose.yml
 
 ---
 
 # Como Executar o Projeto
+
+A aplicação foi desenhada para ser executada utilizando **containers Docker**, permitindo subir toda a infraestrutura com facilidade, sem a necessidade de instalar bancos de dados ou message brokers na máquina hospedeira.
 
 ## 1 - Clonar o repositório
 ```bash

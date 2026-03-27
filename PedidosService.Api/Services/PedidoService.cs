@@ -2,6 +2,7 @@ using IntegracaoPedidos.Core.Interfaces;
 using IntegracaoPedidos.Core.Models;
 using IntegracaoPedidos.Core.Enums;
 using PedidosService.Api.DTOs;
+using IntegracaoPedidos.Core.Pagination;
 
 namespace PedidosService.Api.Services;
 
@@ -37,15 +38,26 @@ public class PedidoService : IPedidoService
         return MapToResponseDto(pedido);
     }
 
-    public async Task<List<PedidoResponseDto>> ListarPedidos()
+    public async Task<PagedResult<PedidoResponseDto>> ListarPedidosAsync(int pagina, int quantidade)
     {
-        var pedidos = await _pedidoRepository.GetPedidosAsync();
+        // 1. Buscamos a caixinha paginada lá do nosso novo repositório
+        var resultadoPaginado = await _pedidoRepository.GetPedidosPaginadosAsync(pagina, quantidade);
 
-        return pedidos
+        // 2. Extraímos os Pedidos (Banco) e convertemos para DTOs (Tela) para não expor a entidade real do banco
+        var listaDeDtos = resultadoPaginado.Items
             .Select(MapToResponseDto)
             .ToList();
-    }
 
+        // 3. Montamos uma NOVA caixinha, agora com os DTOs, mantendo a contagem das páginas intacta
+        return new PagedResult<PedidoResponseDto>
+        {
+            Items = listaDeDtos,
+            TotalCount = resultadoPaginado.TotalCount,
+            CurrentPage = resultadoPaginado.CurrentPage,
+            PageSize = resultadoPaginado.PageSize
+        };
+    }
+    
     public async Task<List<PedidoResponseDto>> ObterPendentes()
     {
         var pedidos = await _pedidoRepository.ObterPendentesAsync();
