@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using PedidosService.Api.DTOs;
 using PedidosService.Api.Services;
 using PedidosService.Api.Mensageria;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PedidosService.Api.Controllers;
 
@@ -24,6 +25,7 @@ public class PedidosController : ControllerBase
 
 
     [HttpPost]
+    [Authorize (Roles = "Admin")] // Somente usuários com as roles "Admin" podem criar pedidos
     public async Task<IActionResult> Criar(CreatePedidoDto dto)
 
     {
@@ -61,6 +63,8 @@ public class PedidosController : ControllerBase
     
 
      [HttpGet]
+     [Authorize]
+     
      public async Task<IActionResult> Listar(
         // [FromQuery] diz para o C# procurar esses valores na URL (ex: ?pagina=2&quantidade=5)
         // "= 1" e "= 10" são os valores padrão. Se o usuário não digitar nada na URL, 

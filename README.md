@@ -60,6 +60,12 @@ Para garantir a escalabilidade do sistema e evitar gargalos de memória (Memory 
 * **Consultas de Leitura Otimizadas:** Aplicação de `.AsNoTracking()` nas listagens para liberar o Change Tracker, economizando processamento e memória RAM do servidor.
 * **Respostas Padronizadas (Wrappers):** Criação de uma classe genérica `PagedResult<T>` para devolver os dados envelopados com metadados (total de itens, páginas, etc.), facilitando a integração com sistemas Frontend.
 
+## 🔒 Segurança (Autenticação e Autorização)
+Para proteger os endpoints da aplicação e simular um ambiente corporativo real, foi implementada uma camada de segurança State-less:
+* **JSON Web Tokens (JWT):** Geração e validação de tokens criptografados (HmacSha256) para autenticação de usuários.
+* **Role-Based Access Control (RBAC):** Controle de acesso granular. Exemplo: Apenas usuários com a claim de `Admin` possuem permissão para criar novos pedidos na API, enquanto outros perfis podem apenas visualizar.
+* **Performance:** A validação do token é feita em memória na pipeline do .NET (State-less), eliminando a necessidade de consultas repetitivas ao banco de dados para validar credenciais.
+
 ## Mensageria e Processamento Assíncrono (RabbitMQ)
 O sistema abandonou o acoplamento síncrono (HTTP direto) e utiliza o **RabbitMQ** para garantir uma arquitetura resiliente:
 * **Desacoplamento:** A API principal apenas publica o evento e libera o usuário instantaneamente, sem travar aguardando o processamento.
@@ -101,6 +107,7 @@ IntegracaoPedidos
 │   ├── Repositories
 │
 ├── PedidosService.Api
+│   ├── Auth
 │   ├── Controllers
 │   ├── DTOs
 │   ├── Mensageria
