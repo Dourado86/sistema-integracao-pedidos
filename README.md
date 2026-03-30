@@ -32,12 +32,13 @@ Responsável por:
 # Tecnologias Utilizadas
 
 * ASP.NET Core (.NET 8)
-* Entity Framework Core & SQL Server
+* Entity Framework Core & SQL Server (Otimizado com `.AsNoTracking()` e Paginação)
+* **Segurança State-less com JWT (JSON Web Tokens) e RBAC (Role-Based Access Control)**
 * **Mensageria com RabbitMQ (Message Broker)**
-* BackgroundService (Worker Service) para consumo de filas
+* BackgroundService (Worker Service) para consumo de filas em background
 * Arquitetura Orientada a Eventos (Event-Driven)
-* Logging estruturado & Middleware global de exceções
-* Docker e Docker Compose
+* Tratamento centralizado com Middleware Global de Exceções
+* Containerização com Docker e Docker Compose
 
 ---
 
